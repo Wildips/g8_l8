@@ -3,19 +3,6 @@
 """
 import pytest
 
-from models import Product, Cart
-
-
-@pytest.fixture
-def product():
-    return Product("book", 100, "This is a book", 1000)
-
-
-@pytest.fixture
-def cart():
-    # return {Product("book", 100, "This is a book", 1000): 0}
-    return {{Product("book", 100, "This is a book", 1000): 0}}
-
 
 class TestProducts:
     """
@@ -23,19 +10,16 @@ class TestProducts:
     Например, текущий класс группирует тесты на класс Product
     """
 
-    @classmethod
-    def test_product_check_quantity(cls, product):
-        assert Product.check_quantity(product, quantity=1000), 'Ожидается значение True'
-        assert not Product.check_quantity(product, 1001), 'Ожидается значение False'
+    def test_product_check_quantity(self, product):
+        assert product.check_quantity(quantity=1000), 'Ожидается значение True'
+        assert not product.check_quantity(1001), 'Ожидается значение False'
 
-    @classmethod
-    def test_product_buy(cls, product):
-        assert Product.buy(product, quantity=1000) is None, 'Ожидается значение None'
+    def test_product_buy(self, product):
+        assert product.buy(quantity=1000) is None, 'Ожидается значение None'
 
-    @classmethod
-    def test_product_buy_more_than_available(cls, product):
+    def test_product_buy_more_than_available(self, product):
         with pytest.raises(ValueError):
-            assert Product.buy(product, 1001), 'Ожидается значение ValueError'
+            assert product.buy(1001), 'Ожидается значение ValueError'
 
 
 class TestCart:
@@ -46,13 +30,46 @@ class TestCart:
         Например, негативные тесты, ожидающие ошибку (используйте pytest.raises, чтобы проверить это)
     """
 
-    @classmethod
-    # @staticmethod
-    def test_add_product(cls, product):  # , cart):
+    @pytest.mark.parametrize("count_of_item", [1, 10000])
+    def test_add_product(self, product, cart, count_of_item):
+        assert cart.add_product(product, count_of_item) is None, 'Ожидается значение None'
+        assert cart.products, 'Ожидается что после добавления товара корзина не пуста'
+        assert int(cart.products.get(product)) == count_of_item, \
+            f'Ожидается что изначальное число товара: 0 ' \
+            f'в результате работы метода должно быть: {count_of_item} ' \
+            f'но имеет значение {cart.products.get(product)}'
 
-        assert Cart.add_product(product)
+    def test_remove_product(self, product, not_empty_cart):
+        init_cart_amount_of_product = not_empty_cart.products.get(product)
+        assert not_empty_cart.remove_product(product, 1) is None, 'Ожидается значение None'
+        assert not_empty_cart.products, 'Ожидается что после удаления товара корзина не пуста'
+        assert int(not_empty_cart.products.get(product)) == init_cart_amount_of_product - 1, \
+            f'Ожидается что изначальное число товара: {init_cart_amount_of_product} ' \
+            f'в результате работы метода должно быть: {init_cart_amount_of_product - 1} ' \
+            f'но имеет значение {not_empty_cart.products.get(product)}'
 
-        # new_cart = Cart.add_product(cart, product, buy_count=1)
-        # new_cart = Cart.add_product(cls, product, buy_count=1)
-        #
-        # assert new_cart.products
+    @pytest.mark.parametrize("count_of_item", [None, 10000])
+    def test_remove_product_record(self, product, not_empty_cart, count_of_item):
+        assert not_empty_cart.remove_product(product, count_of_item) is None, 'Ожидается значение None'
+        assert not not_empty_cart.products, 'Ожидается что после удаления товара корзина пуста'
+
+    def test_clear(self, product, not_empty_cart):
+        assert not_empty_cart.clear() is None, 'Ожидается значение None'
+        assert not not_empty_cart.products, 'Ожидается что после очистки корзина пуста'
+
+    def test_get_total_price(self, product, not_empty_cart):
+        result = not_empty_cart.get_total_price()
+        assert result == 1000, 'Ожидается значение 1000'
+        assert type(result).__name__ == "float", 'Ожидается тип данных float'
+
+    def test_buy_for_empty_cart(self, cart):
+        assert cart.buy() is None, 'Ожидается значение None'
+        assert not cart.products, 'Ожидается что корзина пуста'
+
+    def test_buy(self, not_empty_cart):
+        assert not_empty_cart.buy() is None, 'Ожидается значение None'
+        assert not not_empty_cart.products, 'Ожидается что корзина пуста'
+
+    def test_buy_for_huge_amount(self, huge_cart):
+        with pytest.raises(ValueError):
+            assert huge_cart.buy(), 'Ожидается значение ValueError'
