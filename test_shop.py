@@ -62,6 +62,11 @@ class TestCart:
         assert result == 1000, 'Ожидается значение 1000'
         assert type(result).__name__ == "float", 'Ожидается тип данных float'
 
+    def test_get_total_price_for_two_items(self, product, not_empty_cart_with_two_items):
+        result = not_empty_cart_with_two_items.get_total_price()
+        assert result == 1750, 'Ожидается значение 1750'
+        assert type(result).__name__ == "float", 'Ожидается тип данных float'
+
     def test_buy_for_empty_cart(self, cart):
         assert cart.buy() is None, 'Ожидается значение None'
         assert not cart.products, 'Ожидается что корзина пуста'
