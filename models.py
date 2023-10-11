@@ -36,6 +36,9 @@ class Product:
     def __hash__(self):
         return hash(self.name + self.description)
 
+    def __eq__(self, other):
+        return self.name == other.name and self.description == other.description
+
 
 class Cart:
     """
