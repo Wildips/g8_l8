@@ -72,9 +72,10 @@ class Cart:
         """
         if product in self.products:
             if remove_count is None or remove_count > self.products[product]:
-                self.products = {key: value for key, value in self.products.items() if key != product}
+                # self.products = {key: value for key, value in self.products.items() if key != product}
+                self.products.pop(product)
             else:
-                self.products[product] -= 1
+                self.products[product] -= remove_count
 
     def clear(self):
         self.products = {}
@@ -92,9 +93,12 @@ class Cart:
         Учтите, что товаров может не хватать на складе.
         В этом случае нужно выбросить исключение ValueError
         """
-        for key, value in self.products.items():
-            if key.quantity >= value:
-                key.buy(value)
-            else:
-                raise ValueError(f'На складе доступно: {key.quantity} единиц товара при требуемых: {value}')
+        # for key, value in self.products.items():
+        # if key.quantity >= value:
+        #     key.buy(value)
+        # else:
+        #     raise ValueError(f'На складе доступно: {key.quantity} единиц товара при требуемых: {value}')
+
+        for product, quantity in self.products.items():
+            product.buy(quantity)
         self.clear()
